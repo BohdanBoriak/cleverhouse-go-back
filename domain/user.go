@@ -1,6 +1,6 @@
 package domain
 
-type User struct {
+type User struct { // не йде в бд
 	Id         uint64
 	FirstName  string
 	SecondName string

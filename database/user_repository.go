@@ -1,8 +1,14 @@
 package database
 
-import "github.com/upper/db/v4"
+import (
+	"cleverhouse-go-back/domain"
 
-type user struct {
+	"github.com/upper/db/v4"
+)
+
+const UsersTableName = "users"
+
+type user struct { //йде в базу даних
 	Id         uint64 `db:"id,omitempty"`
 	FirstName  string `db:"first_name"`
 	SecondName string `db:"second_name"`
@@ -11,18 +17,47 @@ type user struct {
 	Password   string `db:"password"`
 }
 
-func SaveBohdan(sess db.Session) error {
-	u := user{
-		FirstName:  "Bohdan",
-		SecondName: "Boriak",
-		Phone:      "+38000000000",
-		Email:      "t@test.com",
-		Password:   "12345678",
+type UserRepository struct {
+	coll db.Collection
+	sess db.Session
+}
+
+func NewUserRepository(session db.Session) UserRepository {
+	return UserRepository{
+		coll: session.Collection(UsersTableName),
+		sess: session,
 	}
+}
 
-	err := sess.
-		Collection("users").
-		InsertReturning(&u)
+func (r UserRepository) Save(u domain.User) (domain.User, error) {
+	user := r.mapDomainToModel(u)
+	err := r.coll.InsertReturning(&user)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return r.mapModelToDomain(user), nil
+}
 
-	return err
+// перетворює domain.User -> user (який піде в бд)
+func (r UserRepository) mapDomainToModel(u domain.User) user {
+	return user{
+		Id:         u.Id,
+		FirstName:  u.FirstName,
+		SecondName: u.SecondName,
+		Phone:      u.Phone,
+		Email:      u.Email,
+		Password:   u.Password,
+	}
+}
+
+// перетворює user -> domain.User (який піде в бд)
+func (r UserRepository) mapModelToDomain(u user) domain.User {
+	return domain.User{
+		Id:         u.Id,
+		FirstName:  u.FirstName,
+		SecondName: u.SecondName,
+		Phone:      u.Phone,
+		Email:      u.Email,
+		Password:   u.Password,
+	}
 }
