@@ -1,29 +1,26 @@
 package main
 
 import (
-	"cleverhouse-go-back/config"
+	"cleverhouse-go-back/config/container"
+	"cleverhouse-go-back/domain"
 	"fmt"
 	"log"
-
-	"github.com/upper/db/v4/adapter/postgresql"
 )
 
 func main() {
-	config := config.GetConfig()
+	cont := container.New()
 
-	settings := postgresql.ConnectionURL{
-		Database: config.DbName,
-		Host:     config.DbHost,
-		User:     config.DbUser,
-		Password: config.DbPassword,
+	user := domain.User{
+		FirstName:  "Bohdan",
+		SecondName: "Boriak",
+		Phone:      "0123456789",
+		Email:      "test@test.com",
 	}
 
-	sess, err := postgresql.Open(settings)
+	newUser, err := cont.UserRepo.Save(user)
 	if err != nil {
-		log.Fatalf("Db connection error: %s", err)
+		log.Printf("Error: %s", err)
 	}
 
-	defer sess.Close()
-
-	fmt.Println(sess)
+	fmt.Println(newUser)
 }
